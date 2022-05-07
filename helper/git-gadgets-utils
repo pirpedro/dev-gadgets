@@ -1,0 +1,19 @@
+# put all utility functions here
+
+# make a temporary file
+git_gadgets_mktemp() {
+  mktemp -t "$(basename "$0")".XXXXXXX
+}
+
+git_gadgets_default_branch() {
+  local gadgets_default_branch init_default_branch
+  gadgets_default_branch=$(git config --get git-gadgets.default-branch)
+  init_default_branch=$(git config --get init.defaultBranch)
+  if [ -n "$gadgets_default_branch" ]; then
+    echo "$gadgets_default_branch"
+  elif [ -n "$init_default_branch" ]; then
+    echo "$init_default_branch"
+  else
+    echo "main"
+  fi
+}
