@@ -1,0 +1,51 @@
+items:
+  - id: git-town
+    name: Git Town
+    description: "Git workflow automation tool."
+    verify: git-town --version
+    strategies:
+      brew: git-town
+      apt: git-town
+      release:
+        url: https://github.com/git-town/git-town/releases/latest/download/git-town_linux_amd64.zip
+        bin: git-town
+  - id: pre-commit
+    name: pre-commit
+    description: "Framework for managing and maintaining multi-language pre-commit hooks."
+    verify: pre-commit --version
+    strategies:
+      pipx: pre-commit
+      uv: pre-commit
+  - id: just
+    name: just
+    description: "Command runner similar to Make."
+    verify: just --version
+    strategies:
+      brew: just
+      apt: just
+  - id: bump-my-version
+    name: bump-my-version
+    description: "CLI tool to bump version numbers in files."
+    verify: bump-my-version --version
+    strategies:
+      pipx: bump-my-version
+      uv: bump-my-version
+  - id: goreleaser
+    name: GoReleaser
+    description: "Release automation for projects."
+    verify: goreleaser --version
+    strategies:
+      brew: goreleaser
+      apt: goreleaser
+      release:
+        url: https://github.com/goreleaser/goreleaser/releases/latest/download/goreleaser_Linux_x86_64.tar.gz
+        bin: goreleaser
+  - id: semantic-release
+    name: semantic-release
+    description: "Automates version management and package publishing using semantic versioning."
+    verify: semantic-release --version
+    strategies:
+      npm: semantic-release
+      volta: semantic-release
+curate:
+  [git-town, pre-commit, just, bump-my-version, goreleaser, semantic-release]

@@ -1,4 +1,4 @@
-_git-gadgets() {
+_dev-gadgets() {
   local curcontext=$curcontext state line ret=1
   declare -A opt_args
 

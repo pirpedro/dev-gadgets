@@ -1,0 +1,35 @@
+project_name: dev-gadgets
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: dev-gadgets
+    main: ./cmd/dev-gadgets
+    binary: dev-gadgets
+    goos: [linux, darwin]
+    goarch: [amd64, arm64]
+    ldflags:
+      - -s -w -X github.com/pirpedro/dev-gadgets/internal/cmd.version={{.Version}}
+    env:
+      - CGO_ENABLED=0
+
+archives:
+  - id: default
+    name_template: '{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}'
+    format: zip
+    files:
+      - LICENSE
+      - README.md
+
+checksum:
+  name_template: 'checksums.txt'
+
+changelog:
+  sort: asc
+  use: github
+
+release:
+  draft: false
+  prerelease: auto

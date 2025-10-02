@@ -1,0 +1,44 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "just: install",
+      "type": "shell",
+      "command": "just install",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "just: build",
+      "type": "shell",
+      "command": "just build",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "just: test",
+      "type": "shell",
+      "command": "just test",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "just: lint",
+      "type": "shell",
+      "command": "just lint",
+      "problemMatcher": []
+    },
+    {
+      "label": "just: fmt",
+      "type": "shell",
+      "command": "just fmt",
+      "problemMatcher": []
+    },
+    {
+      "label": "just: publish",
+      "type": "shell",
+      "command": "just publish",
+      "problemMatcher": []
+    }
+  ]
+}

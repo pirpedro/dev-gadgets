@@ -6,11 +6,11 @@ BINS = $(wildcard bin/git-*)
 CODE_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 INSTALL_VIA ?= source
 # Libraries used by all commands
-LIB = "helper/reset-env" "helper/git-gadgets-utils"
+LIB = "helper/reset-env" "helper/dev-gadgets-utils"
 
 COMMANDS = $(subst bin/, , $(BINS))
 
-default: install
+default: build-go
 
 check:
 	@echo "Check dependencies before installation"
@@ -20,7 +20,7 @@ check:
 install: check
 	@mkdir -p $(DESTDIR)$(BINPREFIX)
 	@echo "... installing bins to $(DESTDIR)$(BINPREFIX)"
-	$(eval TEMPFILE := $(shell mktemp -q $${TMPDIR:-/tmp}/git-gadgets.XXXXXX 2>/dev/null || mktemp -q))
+	$(eval TEMPFILE := $(shell mktemp -q $${TMPDIR:-/tmp}/dev-gadgets.XXXXXX 2>/dev/null || mktemp -q))
 	@# chmod from rw-------(default) to rwxrwxr-x, so that users can exec the scripts
 	@chmod 775 $(TEMPFILE)
 	$(eval EXISTED_ALIASES := $(shell \
@@ -46,9 +46,9 @@ install: check
 		fi; \
 	)
 	@mkdir -p $(DESTDIR)$(SYSCONFDIR)/bash_completion.d
-	cp -f contrib/completion/bash_completion.sh $(DESTDIR)$(SYSCONFDIR)/bash_completion.d/git-gadgets
+	cp -f contrib/completion/bash_completion.sh $(DESTDIR)$(SYSCONFDIR)/bash_completion.d/dev-gadgets
 	@echo ""
-	@echo "If you are a zsh user, you may want to 'source $(CODE_DIR)contrib/completion/git-gadgets-completion.zsh'" \
+	@echo "If you are a zsh user, you may want to 'source $(CODE_DIR)contrib/completion/dev-gadgets-completion.zsh'" \
 		"and put this line into ~/.zshrc to enable zsh completion"
 
 uninstall:
@@ -56,6 +56,20 @@ uninstall:
 		echo "... uninstalling $(DESTDIR)$(BINPREFIX)/$(notdir $(BIN))"; \
 		rm -f $(DESTDIR)$(BINPREFIX)/$(notdir $(BIN)); \
 	)
-	rm -f $(DESTDIR)$(SYSCONFDIR)/bash_completion.d/git-gadgets
+	rm -f $(DESTDIR)$(SYSCONFDIR)/bash_completion.d/dev-gadgets
 
 .PHONY: default check install uninstall
+
+# --- Go build (new path) ---
+GO_CMD?=go
+BIN_DIR?=dist
+
+.PHONY: build-go test-go run-go
+build-go:
+	$(GO_CMD) build -o $(BIN_DIR)/dev-gadgets ./cmd/dev-gadgets
+
+test-go:
+	$(GO_CMD) test ./...
+
+run-go:
+	$(GO_CMD) run ./cmd/dev-gadgets --help

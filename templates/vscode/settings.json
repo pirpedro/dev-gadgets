@@ -1,0 +1,60 @@
+{
+  // ---------- Editing & formatting ----------
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit",
+    "source.fixAll": "explicit"
+  },
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "files.trimTrailingWhitespace": true,
+
+  // Keep lines readable
+  "editor.rulers": [100],
+  "editor.renderWhitespace": "selection",
+  "editor.tabSize": 2,
+  "editor.detectIndentation": false,
+
+  // ---------- Language-specific safe defaults ----------
+  // JSON/JSONC/Markdown use built-in formatters
+  "[json]": { "editor.defaultFormatter": "vscode.json-language-features" },
+  "[jsonc]": { "editor.defaultFormatter": "vscode.json-language-features" },
+  "[markdown]": {
+    "editor.defaultFormatter": "vscode.markdown-language-features"
+  },
+
+  // If you install Prettier, it will take over JS/TS/React automatically
+  // (see extensions.json). No hard-binding here to keep it flexible.
+
+  // ---------- Search excludes (common heavy dirs) ----------
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.git": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/out": true,
+    "**/.venv": true,
+    "**/__pycache__": true,
+    "**/.next": true,
+    "**/.turbo": true,
+    "**/target": true,
+    "**/coverage*": true
+  },
+
+  // ---------- File associations ----------
+  "files.associations": {
+    "Justfile": "makefile",
+    "*.env": "dotenv",
+    ".env.*": "dotenv",
+    "Dockerfile.*": "dockerfile"
+  },
+
+  // ---------- Language server quality-of-life (light-touch) ----------
+  // Rust: prefer clippy for checks if installed
+  "rust-analyzer.check.command": "clippy",
+  // Go: let the official Go extension manage tools (no hard prefs here)
+
+  // ---------- Terminal ----------
+  "terminal.integrated.defaultProfile.linux": "bash"
+}

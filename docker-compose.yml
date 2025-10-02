@@ -1,5 +1,13 @@
-version: '3.8'
-
 services:
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    user: dev
+    tty: true
+    volumes:
+      - dev_gadgets_data:/home/dev/.local/share/dev-gadgets
+    working_dir: /home/dev/.local/share/dev-gadgets
+
+volumes:
+  dev_gadgets_data: {}
