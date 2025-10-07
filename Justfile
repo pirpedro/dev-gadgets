@@ -22,24 +22,25 @@
 # =============================================================================
 
 # You may override via env/.env if needed
-go          := env_var_or_default("GO", "go")
-export GOPATH := env_var_or_default("GOPATH", `go env GOPATH`)
-export GOOS   := env_var_or_default("GOOS",   `go env GOOS`)
-export GOARCH := env_var_or_default("GOARCH", `go env GOARCH`)
+go          := `command -v go || printf :`
+
+export GOPATH := env_var_or_default("GOPATH", `command -v go >/dev/null 2>&1 && go env GOPATH || echo ""`)
+export GOOS   := env_var_or_default("GOOS",   `command -v go >/dev/null 2>&1 && go env GOOS || echo ""`)
+export GOARCH := env_var_or_default("GOARCH", `command -v go >/dev/null 2>&1 && go env GOARCH || echo ""`)
 export CGO_ENABLED := env_var_or_default("CGO_ENABLED", "0")
 
 gobin       := GOPATH + "/bin"
 
 # ldflags embedding version info from the base (version/git_commit/git_branch/build_time/build_by)
 # Uses current module path when available; falls back gracefully.
-module      := `{{go}} list -m 2>/dev/null || echo ""`
+module      := `go list -m 2>/dev/null || echo ""`
 ld_flags    := if module != "" {
   "-s -w \
-   -X '" + module + "/pkg/version.Version={{version}}' \
-   -X '" + module + "/pkg/version.Commit={{git_commit}}' \
-   -X '" + module + "/pkg/version.Branch={{git_branch}}' \
-   -X '" + module + "/pkg/version.BuildTime={{build_time}}' \
-   -X '" + module + "/pkg/version.BuildBy={{build_by}}'"
+   -X '" + module + "/pkg/version.Version=" + version + "' \
+   -X '" + module + "/pkg/version.Commit=" + git_commit + "' \
+   -X '" + module + "/pkg/version.Branch=" + git_branch + "' \
+   -X '" + module + "/pkg/version.BuildTime=" + build_time + "' \
+   -X '" + module + "/pkg/version.BuildBy=" + build_by + "'"
 } else {
   "-s -w"
 }
@@ -165,6 +166,5 @@ gadgets-interactive:
 [group('🛠️  Development')]
 gadgets-install-all:
   @just gadgets install --all
-
 
 import? "~/.config/just/Justfile"

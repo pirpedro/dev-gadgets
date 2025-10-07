@@ -4,6 +4,8 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"slices"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -44,6 +46,10 @@ func Load() (*Config, error) {
 	if err := yaml.Unmarshal(b, &c); err != nil {
 		return nil, err
 	}
+
+	slices.SortFunc(c.Items, func(a, b Item) int {
+		return strings.Compare(a.ID, b.ID)
+	})
 	return &c, nil
 }
 

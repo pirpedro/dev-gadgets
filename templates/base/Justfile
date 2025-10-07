@@ -72,6 +72,19 @@ COMPOSE_PROFILES := env_var_or_default("COMPOSE_PROFILES", "")
 COMPOSE_PROJECT_NAME := env_var_or_default("COMPOSE_PROJECT_NAME", "")
 COMPOSE_FILE := env_var_or_default("COMPOSE_FILE", "")
 
+# ---- Container Detection ----
+# Check if running inside a container/devcontainer
+IN_CONTAINER := `
+  # Check for container indicators
+  if [ -f /.dockerenv ]; then echo "true"; exit 0; fi
+  if [ -n "${DEVCONTAINER:-}" ]; then echo "true"; exit 0; fi
+  if [ -n "${REMOTE_CONTAINERS:-}" ]; then echo "true"; exit 0; fi
+  if [ -n "${CODESPACES:-}" ]; then echo "true"; exit 0; fi
+  if [ "${USER:-}" = "vscode" ] && [ -d "/workspaces" ]; then echo "true"; exit 0; fi
+  if grep -q docker /proc/1/cgroup 2>/dev/null; then echo "true"; exit 0; fi
+  echo "false"
+`
+
 # ---- Docker Compose Detection ----
 # Detect which docker compose command is available
 DOCKER_COMPOSE := `command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1 && echo "docker compose" || echo "docker-compose"`
@@ -105,7 +118,11 @@ COMPOSE_FILE_PATH := `
 `
 
 # Check if we have a compose file
-HAS_COMPOSE := if COMPOSE_FILE_PATH != "none" { "true" } else { "false" }
+HAS_COMPOSE := if IN_CONTAINER == "false" {
+  if COMPOSE_FILE_PATH != "none" { "true" } else { "false" }
+} else {
+  "false"
+}
 
 IS_YML  := if COMPOSE_FILE_PATH == 'docker-compose.yml' { "true" } else { "false" }
 IS_YAML := if COMPOSE_FILE_PATH == 'docker-compose.yaml' { "true" } else { "false" }
@@ -145,18 +162,7 @@ COMPOSE_CMD := if HAS_COMPOSE == "true" {
   ":"
 }
 
-# ---- Container Detection ----
-# Check if running inside a container/devcontainer
-IN_CONTAINER := `
-  # Check for container indicators
-  if [ -f /.dockerenv ]; then echo "true"; exit 0; fi
-  if [ -n "${DEVCONTAINER:-}" ]; then echo "true"; exit 0; fi
-  if [ -n "${REMOTE_CONTAINERS:-}" ]; then echo "true"; exit 0; fi
-  if [ -n "${CODESPACES:-}" ]; then echo "true"; exit 0; fi
-  if [ "${USER:-}" = "vscode" ] && [ -d "/workspaces" ]; then echo "true"; exit 0; fi
-  if grep -q docker /proc/1/cgroup 2>/dev/null; then echo "true"; exit 0; fi
-  echo "false"
-`
+
 
 # TTY detection for docker exec
 TTY_FLAG := `[ -t 0 ] && [ -t 1 ] && echo "-it" || echo "-T"`
@@ -196,10 +202,23 @@ _fetch PATH DEST:
   curl -fsSL "$url" -o "{{DEST}}"
   echo "✔ wrote {{DEST}}"
 
+_require_git:
+  @just _util-require git
+  @just _util-require git-town
+
+  @if [ ! -d .git ] || ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then \
+    echo "Not inside a git repository. Aborting." >&2; \
+    exit 1; \
+  fi
+
 _require_compose:
   #!/usr/bin/env bash
   if [ "{{HAS_COMPOSE}}" != "true" ]; then
     echo "No docker-compose file found. Aborting." >&2
+    exit 0
+  fi
+  if [ "{{IN_CONTAINER}}" = "true" ]; then
+    echo "Running inside container. Skipping docker-compose command." >&2
     exit 0
   fi
 
@@ -309,6 +328,34 @@ exec +args:
 # =============================================================================
 # Common Development Tasks
 # =============================================================================
+# Open project in VS Code (start container if docker compose exists)
+[group('🛠️  Development')]
+open path=root_dir:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  if ! command -v code >/dev/null 2>&1; then
+    echo "→ [open] VS Code (code) is not installed or not in PATH." >&2
+    exit 1
+  fi
+  if [ ! -d {{quote(path)}} ]; then
+    echo "→ [open] Project path not found: {{path}}" >&2
+    exit 1
+  fi
+  if [ ! -f "{{path}}/.devcontainer/devcontainer.json" ]; then
+    just dc-up
+  fi
+
+  folder="$(basename {{quote(path)}})"
+  SEARCH_FOR="Folder (${folder})"
+  STATUS="$(code --status 2>/dev/null || true)"
+  if printf "%s" "$STATUS" | tr -d "\r" | grep -Fq "$SEARCH_FOR"; then
+      echo "→ [open] Already open : $folder"
+      exit 0
+  fi
+
+  exec code -n "{{path}}" || { echo "Failed to open VS Code"; exit 1; }
+
+
 # Install dependencies (adaptable through stack)
 [group('🛠️  Development')]
 install:
@@ -620,4 +667,16 @@ init-vscode:
   just _fetch "vscode/settings.json"   ".vscode/settings.json"
   just _fetch "vscode/tasks.json"      ".vscode/tasks.json"
   echo "✓ VS Code config ready."
+
+new-feature +args: _require_git
+  @git town new-feature {{args}}
+
+sync *args: _require_git
+  @git town sync {{args}}
+
+
+ship *args: _require_git
+  # @git town ship {{args}}
+  @echo "foca"
+
 

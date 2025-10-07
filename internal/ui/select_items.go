@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/progress"
 	tea "github.com/charmbracelet/bubbletea"
@@ -43,10 +44,23 @@ func (i SelectItem) Title() string       { return i.Name }
 func (i SelectItem) Description() string { return i.Desc }
 func (i SelectItem) FilterValue() string { return i.Name }
 
+type extraKeys struct {
+	Select      key.Binding
+	SelectAll   key.Binding
+	DeselectAll key.Binding
+}
+
+var ek = extraKeys{
+	Select:      key.NewBinding(key.WithKeys("space"), key.WithHelp("space", "select")),
+	SelectAll:   key.NewBinding(key.WithKeys("a"), key.WithHelp("a", "select all")),
+	DeselectAll: key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "deselect all")),
+}
+
 // Modelo principal
 type SelectItemsModel struct {
 	list       list.Model
 	progress   progress.Model
+	keys       extraKeys
 	installing bool
 	selected   map[string]bool
 	items      []SelectItem
@@ -102,7 +116,7 @@ func (d selectDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd { return nil 
 func NewSelectItemsModel(items []SelectItem) SelectItemsModel {
 	selected := map[string]bool{}
 	delegate := selectDelegate{selected: selected}
-	height := len(items)
+	height := len(items) + 5
 	if height > 20 {
 		height = 20
 	}
@@ -117,9 +131,18 @@ func NewSelectItemsModel(items []SelectItem) SelectItemsModel {
 	l.SetFilteringEnabled(false)
 	l.Styles.Title = lipgloss.NewStyle().Foreground(draculaPurple).Background(draculaBg).Bold(true)
 	l.SetShowHelp(true)
+
+	l.AdditionalShortHelpKeys = func() []key.Binding {
+		return []key.Binding{
+			ek.Select,
+			ek.SelectAll,
+			ek.DeselectAll}
+	}
+
 	return SelectItemsModel{
 		list:     l,
 		progress: progress.New(progress.WithDefaultGradient()),
+		keys:     ek,
 		selected: selected,
 		items:    items,
 		steps:    len(items),
@@ -191,9 +214,8 @@ func (m *SelectItemsModel) nextStep() tea.Cmd {
 func (m SelectItemsModel) View() string {
 	style := lipgloss.NewStyle().Foreground(draculaFg).Background(draculaBg)
 	out := style.Render(welcomeArt) + "\n"
-	out += "\nWelcome! Select the tools you want to install. Use arrow keys to move, space to toggle, and '?' for more help.\n\n"
 	out += m.list.View() + "\n"
-	out += "Keys: [space] select  [a] select all  [d] deselect all\n"
+	out += "\n"
 	if m.installing {
 		percent := 0.0
 		if m.steps > 0 {

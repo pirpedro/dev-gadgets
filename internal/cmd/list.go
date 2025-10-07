@@ -17,7 +17,7 @@ func init() {
 			for _, it := range cfg.Items {
 				desc := it.Description
 				if desc == "" {
-					desc = "(sem descrição)"
+					desc = "(no description)"
 				}
 				cmd.Printf("%-20s %s\n", it.ID, desc)
 			}

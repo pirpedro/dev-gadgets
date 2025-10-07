@@ -43,6 +43,9 @@
       "updateRemoteUserUID": false
     },
     "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/pirpedro/features/just:": {
+      "justfile": false
+    },
     "ghcr.io/pirpedro/features/antidote:": {
       "setAsDefaultShell": true
     },
@@ -60,6 +63,6 @@
   "remoteEnv": {
     "SSH_AUTH_SOCK": "/ssh-agent"
   },
-  "postCreateCommand": "ln -s /workspaces/dev-gadgets/templates/Justfile ~/.config/just/Justfile;go mod download",
+  "postCreateCommand": "mkdir -p ~/.config/just && ln -s /workspaces/dev-gadgets/templates/base/Justfile ~/.config/just/Justfile;go mod download",
   "remoteUser": "vscode"
 }
