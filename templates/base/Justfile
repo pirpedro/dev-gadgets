@@ -730,15 +730,15 @@ release prod="main": _require_git
   git push -u origin "$dev" || true
 
   # promote to production branch
-  git switch "$prod"
+  git switch {{prod}}
   git fetch origin
   if git merge --ff-only "$dev"; then
-    echo "✔ FF-only merge from $dev → $prod"
+    echo "✔ FF-only merge from $dev → {{prod}}"
   else
     echo "✋ FF-only not possible. Use 'just release-merge' for a merge commit."
     exit 1
   fi
-  git push origin "$prod"
+  git push origin {{prod}}
 
 [group('🌿 Git')]
 release-merge prod="main": _require_git
@@ -747,7 +747,7 @@ release-merge prod="main": _require_git
   dev={{quote(_main_branch)}}
   git switch "$dev"
   git town sync
-  git switch "$prod"
+  git switch {{prod}}
   git fetch origin
-  git merge --no-ff "$dev" -m "release: merge $dev into $prod"
-  git push origin "$prod"
+  git merge --no-ff "$dev" -m "release: merge $dev into {{prod}}"
+  git push origin {{prod}}
