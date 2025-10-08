@@ -717,3 +717,37 @@ sunset:
   @git add -A
   @git commit -m "wip: end of day" --no-verify || true
   @just sync
+
+[group('🌿 Git')]
+release prod="main": _require_git
+  #!/usr/bin/env bash
+  set -euo pipefail
+  dev={{quote(_main_branch)}}
+
+  # grant updated git-town main branch
+  git switch "$dev"
+  git town sync
+  git push -u origin "$dev" || true
+
+  # promote to production branch
+  git switch "$prod"
+  git fetch origin
+  if git merge --ff-only "$dev"; then
+    echo "✔ FF-only merge from $dev → $prod"
+  else
+    echo "✋ FF-only not possible. Use 'just release-merge' for a merge commit."
+    exit 1
+  fi
+  git push origin "$prod"
+
+[group('🌿 Git')]
+release-merge prod="main": _require_git
+  #!/usr/bin/env bash
+  set -euo pipefail
+  dev={{quote(_main_branch)}}
+  git switch "$dev"
+  git town sync
+  git switch "$prod"
+  git fetch origin
+  git merge --no-ff "$dev" -m "release: merge $dev into $prod"
+  git push origin "$prod"
