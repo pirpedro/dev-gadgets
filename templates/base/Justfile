@@ -202,6 +202,9 @@ _fetch PATH DEST:
   curl -fsSL "$url" -o "{{DEST}}"
   echo "✔ wrote {{DEST}}"
 
+_current_branch := `git symbolic-ref --quiet --short HEAD 2>/dev/null`
+_main_branch := `git town config | sed -n 's/^[[:space:]]*[Mm]ain branch:[[:space:]]*//p' | head -n1 || echo "main"`
+
 _require_git:
   @just _util-require git
   @just _util-require git-town
@@ -668,15 +671,49 @@ init-vscode:
   just _fetch "vscode/tasks.json"      ".vscode/tasks.json"
   echo "✓ VS Code config ready."
 
+# Create a new feature branch (requires git-town)
+[group('🌿 Git')]
 new-feature +args: _require_git
   @git town new-feature {{args}}
 
+# Synchronizes the current branch with the rest of the world (requires git-town)
+[group('🌿 Git')]
 sync *args: _require_git
   @git town sync {{args}}
 
-
+# Merges the given or current feature branch into its parent branch (requires git-town)
+[group('🌿 Git')]
 ship *args: _require_git
-  # @git town ship {{args}}
-  @echo "foca"
+  @if [ {{quote(_current_branch)}} = {{quote(_main_branch)}} ]; then \
+    echo "You are already on the main branch ({{_main_branch}}). Aborting ship."; exit 0; \
+  else \
+    git town ship {{args}}; \
+  fi
 
+# Create a new feature branch off the main branch (requires git-town)
+[group('🌿 Git')]
+hack +args: _require_git
+  @git town hack {{args}}
 
+# Rename current branch (requires git-town)
+[group('🌿 Git')]
+rename *args: _require_git
+  @git town rename {{args}}
+
+# Show git status (abbreviated)
+[group('🌿 Git')]
+status: _require_git
+  @git status -sb
+
+# Command to start the day (fetch, sync, etc)
+[group('🌿 Git')]
+sunrise: _require_git
+  @git fetch --all --prune
+  @just sync
+
+# Command to end the day (commit wip, sync, etc)
+[group('🌿 Git')]
+sunset:
+  @git add -A
+  @git commit -m "wip: end of day" --no-verify || true
+  @just sync

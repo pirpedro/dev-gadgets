@@ -1,7 +1,8 @@
 # See https://www.git-town.com/configuration-file for details
 
 [branches]
-main = "master"
+main = "develop"
+perennials = ["main"]
 
 [create]
 new-branch-type = "feature"
@@ -10,7 +11,7 @@ stash = true
 
 [ship]
 delete-tracking-branch = true
-strategy = "api"
+strategy = "squash-merge"
 
 [sync]
 auto-sync = false
